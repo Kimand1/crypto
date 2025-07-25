@@ -135,12 +135,35 @@
             background-color: #0056b3;
         }
     </style>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d47a1">
+
+    <!-- iOS 지원용 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+    <!-- Service Worker 등록 -->
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/service-worker.js").then(
+                    (registration) => {
+                        console.log("ServiceWorker 등록 성공:", registration.scope);
+                    },
+                    (err) => {
+                        console.log("ServiceWorker 등록 실패:", err);
+                    }
+                );
+            });
+        }
+    </script>
 </head>
 <body>
 <div class="container">
     <div class="form-section">
         <h2>암복호화 도구 (PBEWithMD5AndDES)</h2>
-
+        <button id="installBtn" style="display:none;">앱 설치하기</button>
         <form method="post" action="/encrypt">
             <label for="encryptText">텍스트:</label>
             <textarea id="encryptText" name="inputText" rows="5" cols="50"><c:if test="${not empty inputText}">${inputText}</c:if></textarea>
@@ -176,6 +199,32 @@
         document.execCommand('copy');
         alert("결과가 클립보드에 복사되었습니다.");
     }
+</script>
+<script>
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    // 설치 가능할 때 발생하는 이벤트
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault(); // 자동 설치 방지
+        deferredPrompt = e; // 나중에 사용
+        installBtn.style.display = 'inline-block'; // 버튼 표시
+    });
+
+    // 버튼 클릭 시 설치 창 띄우기
+    installBtn.addEventListener('click', () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt(); // 설치 대화상자 띄우기
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('사용자가 앱을 설치했습니다');
+                } else {
+                    console.log('사용자가 앱 설치를 취소했습니다');
+                }
+                deferredPrompt = null; // 초기화
+            });
+        }
+    });
 </script>
 </body>
 </html>
