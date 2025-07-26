@@ -226,5 +226,75 @@
         }
     });
 </script>
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+        apiKey: "AIzaSyAB8-es_c35DqEMEU6Jeuyii3vyDCU7TY8",
+        authDomain: "mini-crypto-80bc3.firebaseapp.com",
+        projectId: "mini-crypto-80bc3",
+        storageBucket: "mini-crypto-80bc3.firebasestorage.app",
+        messagingSenderId: "694090253635",
+        appId: "1:694090253635:web:89a9513459ed973a7adbf6",
+        measurementId: "G-2XRMG36JQH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    const messaging = getMessaging(app);
+
+    Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+            getToken(messaging, {
+                vapidKey: "BAlwwwzYs_0esS-zz94PBx7zbG6Mq57102bvMFV5omZXm1pYpLjbG4doyCbwIeIsplZPce2xQ2nK16ErN8DUpEo"
+            }).then((currentToken) => {
+                if (currentToken) {
+                    console.log("FCM Token:", currentToken);
+                    // TODO: 서버에 토큰 전송
+                    // 디바이스 정보 수집
+                    const userAgent = navigator.userAgent;
+                    const isMobile = /Mobi|Android/i.test(userAgent);
+                    const os = /Android/.test(userAgent)
+                        ? 'Android'
+                        : /iPhone|iPad|iPod/.test(userAgent)
+                            ? 'iOS'
+                            : /Win/.test(userAgent)
+                                ? 'Windows'
+                                : /Mac/.test(userAgent)
+                                    ? 'MacOS'
+                                    : 'Unknown';
+
+                    // 서버로 전송
+                    fetch('/register-fcm-token', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            token: currentToken,
+                            user_agent: userAgent,
+                            device_type: isMobile ? 'Mobile' : 'Desktop',
+                            os: os
+                        })
+                    }).then(res => res.text()).then(console.log);
+                } else {
+                    console.warn("No token available.");
+                }
+            }).catch((err) => {
+                console.error("An error occurred while retrieving token. ", err);
+            });
+        }
+    });
+</script>
 </body>
 </html>
