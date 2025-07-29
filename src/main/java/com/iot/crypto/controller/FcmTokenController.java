@@ -16,7 +16,7 @@ public class FcmTokenController {
         this.fcmTokenService = fcmTokenService;
     }
 
-    @PostMapping("/register-fcm-token")
+    @PostMapping("/crypto/register-fcm-token")
     public ResponseEntity<String> registerToken(@RequestBody FcmTokenDto tokenDto) {
         fcmTokenService.saveToken(tokenDto);
         return ResponseEntity.ok("Token registered");

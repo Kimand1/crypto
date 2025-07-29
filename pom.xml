@@ -15,7 +15,7 @@
 	<groupId>com.iot</groupId>
 	<artifactId>crypto</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>jar</packaging>
+	<packaging>war</packaging>
 	<name>crypto</name>
 	<description>PBE 암복호화 JSP 데모</description>
 

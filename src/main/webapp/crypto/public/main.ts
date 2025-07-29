@@ -14,7 +14,17 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
+// service worker를 '/crypto/firebase-messaging-sw.js'로 명시 등록
+navigator.serviceWorker.register('/crypto/firebase-messaging-sw.js')
+    .then((registration) => {
+        console.log('Service Worker registered:', registration);
 
+        // messaging에 등록된 serviceWorker를 명시적으로 연결
+        messaging.useServiceWorker(registration);
+    })
+    .catch(err => {
+        console.error('Service Worker registration failed:', err);
+    });
 // 브라우저 권한 요청 + 토큰 획득
 export async function requestPermissionAndGetToken() {
     const permission = await Notification.requestPermission();

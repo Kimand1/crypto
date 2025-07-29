@@ -14,7 +14,8 @@ public class FirebaseInitializer {
     @PostConstruct
     public void init() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            FileInputStream serviceAccount = new FileInputStream("src/main/resources/firebase-service-key.json");
+            String keyPath = System.getenv("FIREBASE_CONFIG_PATH");
+            FileInputStream serviceAccount = new FileInputStream(keyPath);
 
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))

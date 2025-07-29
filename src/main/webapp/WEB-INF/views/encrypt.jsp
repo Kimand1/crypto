@@ -135,19 +135,19 @@
             background-color: #0056b3;
         }
     </style>
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/crypto/manifest.json">
     <meta name="theme-color" content="#0d47a1">
 
     <!-- iOS 지원용 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/crypto/icons/icon-192x192.png">
 
     <!-- Service Worker 등록 -->
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                navigator.serviceWorker.register("/service-worker.js").then(
+                navigator.serviceWorker.register("/crypto/service-worker.js").then(
                     (registration) => {
                         console.log("ServiceWorker 등록 성공:", registration.scope);
                     },
@@ -164,7 +164,7 @@
     <div class="form-section">
         <h2>암복호화 도구 (PBEWithMD5AndDES)</h2>
         <button id="installBtn" style="display:none;">앱 설치하기</button>
-        <form method="post" action="/encrypt">
+        <form method="post" action="/crypto/encrypt">
             <label for="encryptText">텍스트:</label>
             <textarea id="encryptText" name="inputText" rows="5" cols="50"><c:if test="${not empty inputText}">${inputText}</c:if></textarea>
             <label for="encryptPassword">비밀번호:</label>
@@ -172,7 +172,7 @@
             <button type="submit">암호화</button>
         </form>
 
-        <form method="post" action="/decrypt">
+        <form method="post" action="/crypto/decrypt">
             <label for="decryptText">암호문:</label>
             <textarea id="decryptText" name="inputDec" rows="5" cols="50"><c:if test="${not empty inputDec}">${inputDec}</c:if></textarea>
             <label for="decryptPassword">비밀번호:</label>
@@ -227,74 +227,84 @@
     });
 </script>
 <script type="module">
-    // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
+    import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-messaging.js";
 
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
     const firebaseConfig = {
         apiKey: "AIzaSyAB8-es_c35DqEMEU6Jeuyii3vyDCU7TY8",
         authDomain: "mini-crypto-80bc3.firebaseapp.com",
         projectId: "mini-crypto-80bc3",
-        storageBucket: "mini-crypto-80bc3.firebasestorage.app",
+        storageBucket: "mini-crypto-80bc3.appspot.com",
         messagingSenderId: "694090253635",
-        appId: "1:694090253635:web:89a9513459ed973a7adbf6",
-        measurementId: "G-2XRMG36JQH"
+        appId: "1:694090253635:web:89a9513459ed973a7adbf6"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-
     const messaging = getMessaging(app);
 
-    Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-            getToken(messaging, {
-                vapidKey: "BAlwwwzYs_0esS-zz94PBx7zbG6Mq57102bvMFV5omZXm1pYpLjbG4doyCbwIeIsplZPce2xQ2nK16ErN8DUpEo"
-            }).then((currentToken) => {
-                if (currentToken) {
-                    console.log("FCM Token:", currentToken);
-                    // TODO: 서버에 토큰 전송
-                    // 디바이스 정보 수집
-                    const userAgent = navigator.userAgent;
-                    const isMobile = /Mobi|Android/i.test(userAgent);
-                    const os = /Android/.test(userAgent)
-                        ? 'Android'
-                        : /iPhone|iPad|iPod/.test(userAgent)
-                            ? 'iOS'
-                            : /Win/.test(userAgent)
-                                ? 'Windows'
-                                : /Mac/.test(userAgent)
-                                    ? 'MacOS'
-                                    : 'Unknown';
+    if ('serviceWorker' in navigator && 'Notification' in window) {
+        navigator.serviceWorker.register('/crypto/firebase-messaging-sw.js')
+            .then((registration) => {
+                console.log('✅ Service Worker registered:', registration);
 
-                    // 서버로 전송
-                    fetch('/register-fcm-token', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            token: currentToken,
-                            user_agent: userAgent,
-                            device_type: isMobile ? 'Mobile' : 'Desktop',
-                            os: os
-                        })
-                    }).then(res => res.text()).then(console.log);
-                } else {
-                    console.warn("No token available.");
+                return Notification.requestPermission().then((permission) => {
+                    if (permission !== 'granted') {
+                        throw new Error("Notification permission denied");
+                    }
+
+                    return getToken(messaging, {
+                        vapidKey: "BAlwwwzYs_0esS-zz94PBx7zbG6Mq57102bvMFV5omZXm1pYpLjbG4doyCbwIeIsplZPce2xQ2nK16ErN8DUpEo",
+                        serviceWorkerRegistration: registration,
+                    });
+                });
+            })
+            .then((token) => {
+                if (!token) {
+                    console.warn("⚠️ FCM token not available");
+                    return;
                 }
-            }).catch((err) => {
-                console.error("An error occurred while retrieving token. ", err);
+
+                console.log("✅ FCM Token:", token);
+
+                const userAgent = navigator.userAgent;
+                const isMobile = /Mobi|Android/i.test(userAgent);
+                const os = /Android/.test(userAgent)
+                    ? 'Android'
+                    : /iPhone|iPad|iPod/.test(userAgent)
+                        ? 'iOS'
+                        : /Win/.test(userAgent)
+                            ? 'Windows'
+                            : /Mac/.test(userAgent)
+                                ? 'MacOS'
+                                : 'Unknown';
+
+                fetch('/crypto/register-fcm-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        token,
+                        user_agent: userAgent,
+                        device_type: isMobile ? 'Mobile' : 'Desktop',
+                        os
+                    })
+                }).then(res => res.text()).then(console.log);
+            })
+            .catch((err) => {
+                console.error('❌ Firebase Messaging Error:', err);
             });
-        }
+    } else {
+        console.warn('⚠️ Service Worker or Notifications not supported in this browser.');
+    }
+    // Handle incoming messages. Called when:
+    // - a message is received while the app has focus
+    // - the user clicks on an app notification created by a service worker
+    //   `messaging.onBackgroundMessage` handler.
+    messaging.onMessage((payload) => {
+        console.log('Message received. ', payload);
+        alert(payload);
+        // ...
     });
+
 </script>
 </body>
 </html>

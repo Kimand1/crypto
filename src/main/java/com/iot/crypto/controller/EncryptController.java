@@ -9,6 +9,7 @@ import com.google.firebase.messaging.*;
 import java.io.IOException;
 
 @Controller
+@RequestMapping("/crypto")
 public class EncryptController {
 
     @PostMapping("/encrypt")
@@ -49,9 +50,11 @@ public class EncryptController {
     public String sendPushMessage(
             @RequestParam String token,
             @RequestParam String title,
-            @RequestParam String body
+            @RequestParam String body,
+            Model model
     ) {
-        return sendPush(token, title, body);
+        model.addAttribute("result", sendPush(token, title, body));
+        return "push";
     }
 
 

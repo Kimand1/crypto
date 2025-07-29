@@ -5,7 +5,7 @@
 </head>
 <body>
 <h2>FCM Push 메시지 전송</h2>
-<form method="post" action="/push">
+<form method="post" action="/crypto/push">
     <label for="token">FCM 토큰:</label><br>
     <input type="text" id="token" name="token" style="width: 400px;" required><br><br>
 
@@ -17,5 +17,6 @@
 
     <input type="submit" value="푸시 전송">
 </form>
+${result}
 </body>
 </html>
